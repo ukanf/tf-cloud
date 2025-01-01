@@ -40,6 +40,14 @@ resource "google_compute_instance" "bastion" {
     access_config {}
   }
 
+  metadata = {
+    startup-script = <<-EOT
+      #!/bin/bash
+      sudo apt update -y
+      sudo apt install -y kubectl google-cloud-sdk-gke-gcloud-auth-plugin
+    EOT
+  }
+
   tags = ["bastion-allow-ssh-in"]
 }
 
