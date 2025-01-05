@@ -3,9 +3,9 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "private_subnet_ids" {
-  description = "A list of private subnet IDs"
-  type        = list(string)
+variable "private_subnet_id" {
+  description = "A private subnet ID for the bastion"
+  type        = string
 }
 
 variable "instance_type" {

@@ -36,7 +36,7 @@ resource "google_compute_instance" "bastion" {
   }
 
   network_interface {
-    subnetwork = element(var.private_subnet_ids, 0)
+    subnetwork = var.private_subnet_id
     access_config {}
   }
 
@@ -47,8 +47,8 @@ resource "google_compute_instance" "bastion" {
       sudo apt install -y kubectl google-cloud-sdk-gke-gcloud-auth-plugin
     EOT
   }
-
   tags = ["bastion-allow-ssh-in"]
+
 }
 
 resource "google_compute_firewall" "allow_ssh_bastion" {
