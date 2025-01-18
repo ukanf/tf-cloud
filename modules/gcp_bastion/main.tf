@@ -41,14 +41,9 @@ resource "google_compute_instance" "bastion" {
   }
 
   metadata = {
-    startup-script = <<-EOT
-      #!/bin/bash
-      sudo apt update -y
-      sudo apt install -y kubectl google-cloud-sdk-gke-gcloud-auth-plugin
-    EOT
+    startup-script = file("${path.module}/startup_scripts/autopilot_config.sh")
   }
   tags = ["bastion-allow-ssh-in"]
-
 }
 
 resource "google_compute_firewall" "allow_ssh_bastion" {
