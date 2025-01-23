@@ -8,8 +8,14 @@ kubectl config get-contexts
 kubectl config use-context [CONTEXT_NAME]
 
 
+alias k=kubectl
 gcloud auth login
+gcloud auth login --no-launch-browser
 gcloud config set project tf-poc-gke
 gcloud container clusters get-credentials autopilot-cluster --region us-central1
 kubectl config get-contexts
 kubectl config use-context gke_tf-poc-gke_us-central1_autopilot-cluster
+
+next steps:
+I need to enable GAR
+I need a repository for my anthos-config-sync 

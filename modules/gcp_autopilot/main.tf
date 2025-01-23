@@ -24,6 +24,37 @@ resource "google_container_cluster" "autopilot_cluster" {
   }
 }
 
+resource "google_gke_hub_feature" "config_sync" {
+  name     = "configmanagement"
+  location = "global"
+}
+
+resource "google_gke_hub_membership" "autopilot_cluster_membership" {
+  membership_id = "basic"
+  endpoint {
+    gke_cluster {
+      resource_link = google_container_cluster.autopilot_cluster.id
+    }
+  }
+}
+
+resource "google_gke_hub_feature_membership" "config_sync_membership" {
+  feature    = "configmanagement"
+  membership = google_gke_hub_membership.autopilot_cluster_membership.id
+  location   = "global"
+  configmanagement {
+    config_sync {
+      git {
+        sync_repo   = var.config_sync_repo
+        sync_branch = var.config_sync_branch
+        policy_dir  = "config-sync"
+        secret_type = "ssh"
+      }
+    }
+  }
+}
+
+
 # # Separately Managed Node Pool
 # resource "google_container_node_pool" "primary_nodes" {
 #   name     = google_container_cluster.autopilot_cluster.name

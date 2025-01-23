@@ -22,3 +22,14 @@ variable "region" {
   description = "The region where the cluster will be deployed"
   type        = string
 }
+
+variable "config_sync_repo" {
+  description = "The repository URL for Anthos Config Sync"
+  type        = string
+}
+
+variable "config_sync_branch" {
+  description = "The branch to sync from the repository"
+  type        = string
+  default     = "main"
+}

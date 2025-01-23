@@ -36,4 +36,8 @@ module "gcp_autopilot" {
   services_subnet_id = element(module.vpc.private_subnet_ids, 2)
   pods_subnet_id     = element(module.vpc.private_subnet_ids, 3)
   region             = local.region
+  config_sync_repo   = "https://github.com/ukanf/anthos-sync.git"
+  config_sync_branch = "main"
 }
+
+
