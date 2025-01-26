@@ -14,16 +14,35 @@
  * limitations under the License.
  */
 
-# variable "project_id" {
-#   type        = string
-#   description = "The Google Cloud Platform project ID to deploy Terraform Cloud agent"
-# }
+variable "project_id" {
+  description = "The project ID to deploy resources"
+  type        = string
+}
 
-# variable "region" {
-#   type        = string
-#   description = "The GCP region to use when deploying resources"
-#   default     = "us-central1"
-# }
+variable "region" {
+  description = "The region to deploy resources"
+  type        = string
+}
+
+variable "zone" {
+  description = "The zone to deploy resources"
+  type        = string
+}
+
+variable "mig_name" {
+  description = "The name of the managed instance group"
+  type        = string
+}
+
+variable "instance_template_name" {
+  description = "The name of the instance template"
+  type        = string
+}
+
+variable "instance_group_size" {
+  description = "The size of the instance group"
+  type        = number
+}
 
 variable "create_network" {
   type        = bool

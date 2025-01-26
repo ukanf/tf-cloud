@@ -14,41 +14,6 @@
  * limitations under the License.
  */
 
-variable "project_id" {
-  description = "The project ID to deploy resources"
-  type        = string
-}
-
-variable "region" {
-  description = "The region to deploy resources"
-  type        = string
-}
-
-variable "zone" {
-  description = "The zone to deploy resources"
-  type        = string
-}
-
-variable "mig_name" {
-  description = "The name of the managed instance group"
-  type        = string
-}
-
-variable "instance_template_name" {
-  description = "The name of the instance template"
-  type        = string
-}
-
-variable "instance_group_size" {
-  description = "The size of the instance group"
-  type        = number
-}
-
-variable "agent_version" {
-  description = "The version of the tfc-agent to install"
-  type        = string
-}
-
 locals {
   network_name          = var.create_network ? google_compute_network.tfc_agent_network[0].self_link : var.network_name
   service_account_email = var.create_service_account ? google_service_account.tfc_agent_service_account[0].email : var.service_account_email
@@ -143,7 +108,7 @@ resource "google_secret_manager_secret_version" "tfc_agent_secret_version" {
     "TFC_AGENT_TOKEN"       = var.tfc_agent_token
     "TFC_AGENT_SINGLE"      = var.tfc_agent_single
     "TFC_AGENT_AUTO_UPDATE" = var.tfc_agent_auto_update
-    "AGENT_VERSION"         = var.tfc_agent_version
+    "AGENT_VERSION"     = var.tfc_agent_version
     "LABELS"                = join(",", var.tfc_agent_labels)
   })
 }
@@ -180,7 +145,7 @@ module "mig_template" {
   disk_type            = "pd-ssd"
   auto_delete          = true
   source_image         = var.source_image
-  source_image_family  = "debian-11"  # Updated image family
+  source_image_family  = "debian-11" # Updated image family
   source_image_project = var.source_image_project
   name_prefix          = var.tfc_agent_name_prefix
   startup_script       = local.startup_script
@@ -204,7 +169,7 @@ resource "google_compute_instance_template" "tfc_agent_template" {
   machine_type = "e2-micro"
 
   disk {
-    source_image = "projects/debian-cloud/global/images/family/debian-11"  # Updated image family
+    source_image = "projects/debian-cloud/global/images/family/debian-11" # Updated image family
     auto_delete  = true
     boot         = true
   }
@@ -216,7 +181,7 @@ resource "google_compute_instance_template" "tfc_agent_template" {
   metadata_startup_script = file("${path.module}/scripts/startup.sh")
 
   metadata = {
-    agent-version = var.agent_version
+    agent-version = var.tfc_agent_version
   }
 }
 

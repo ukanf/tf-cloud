@@ -31,7 +31,7 @@ variable "mig_name" {
   type        = string
 }
 
-variable "agent_version" {
+variable "tfc_agent_version" {
   description = "The version of the TFC agent"
   type        = string
 }
