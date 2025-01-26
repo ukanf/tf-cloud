@@ -202,7 +202,7 @@ variable "tfc_agent_labels" {
 variable "tfc_agent_version" {
   type        = string
   description = "Terraform Cloud agent version to install"
-  default     = "1.12.0"
+  default     = "1.16.0"
 }
 
 variable "tfc_agent_token" {
