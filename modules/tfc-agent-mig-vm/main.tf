@@ -180,7 +180,7 @@ module "mig_template" {
   disk_type            = "pd-ssd"
   auto_delete          = true
   source_image         = var.source_image
-  source_image_family  = var.source_image_family
+  source_image_family  = "debian-11"  # Updated image family
   source_image_project = var.source_image_project
   name_prefix          = var.tfc_agent_name_prefix
   startup_script       = local.startup_script
@@ -198,13 +198,13 @@ module "mig_template" {
 }
 
 resource "google_compute_instance_template" "tfc_agent_template" {
-  name        = var.instance_template_name
-  project     = var.project_id
-  region      = var.region
+  name         = var.instance_template_name
+  project      = var.project_id
+  region       = var.region
   machine_type = "e2-micro"
 
   disk {
-    source_image = "projects/debian-cloud/global/images/family/debian-10"
+    source_image = "projects/debian-cloud/global/images/family/debian-11"  # Updated image family
     auto_delete  = true
     boot         = true
   }

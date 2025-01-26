@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-variable "project_id" {
-  type        = string
-  description = "The Google Cloud Platform project ID to deploy Terraform Cloud agent"
-}
+# variable "project_id" {
+#   type        = string
+#   description = "The Google Cloud Platform project ID to deploy Terraform Cloud agent"
+# }
 
-variable "region" {
-  type        = string
-  description = "The GCP region to use when deploying resources"
-  default     = "us-central1"
-}
+# variable "region" {
+#   type        = string
+#   description = "The GCP region to use when deploying resources"
+#   default     = "us-central1"
+# }
 
 variable "create_network" {
   type        = bool
@@ -100,7 +100,7 @@ variable "source_image_family" {
 variable "source_image_project" {
   type        = string
   description = "Project where the source image originates"
-  default     = "ubuntu-os-cloud"
+  default     = "debian-cloud"
 }
 
 variable "source_image" {
