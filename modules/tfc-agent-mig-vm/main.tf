@@ -211,7 +211,6 @@ resource "google_compute_instance_template" "tfc_agent_template" {
 
   network_interface {
     network = "default"
-    access_config {}
   }
 
   metadata_startup_script = file("${path.module}/scripts/startup.sh")
