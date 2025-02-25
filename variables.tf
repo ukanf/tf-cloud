@@ -40,3 +40,13 @@ variable "instance_group_size" {
   description = "The size of the instance group"
   type        = number
 }
+
+variable "tfe_agent_pool_name" {
+  description = "Name of the TFE agent pool"
+  type        = string
+}
+
+variable "tfe_organization" {
+  description = "Name of the TFE organization"
+  type        = string
+}
