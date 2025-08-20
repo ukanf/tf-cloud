@@ -1,6 +1,7 @@
-# tf-cloud
-Terraform things
+I need to 
 
-# IMPORTANT
+gcloud auth login
+$ gcloud config set project tf-vpcsc             
+gcloud auth application-default set-quota-project tf-vpcsc
 
-Check branches for content.
+gcloud config set billing/quota_project tf-vpcsc
