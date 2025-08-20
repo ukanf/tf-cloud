@@ -1,17 +1,14 @@
-package terraform.policy
+package terraform.policies.workspace_name
 
-deny[msg] {
-  ws := input.workspace
-  not allowed_workspace(ws)
-  msg := sprintf("Workspace name '%v' is not allowed. Must be one of: tf-cloud-dev, tf-cloud-uat, tf-cloud-prd", [ws])
+import rego.v1
+
+default workspace_name := "<missing>"
+
+workspace_name := name if {
+    name := input.run.workspace.name
 }
 
-allowed_workspace(ws) {
-  ws == "tf-cloud-dev"
-}
-allowed_workspace(ws) {
-  ws == "tf-cloud-uat"
-}
-allowed_workspace(ws) {
-  ws == "tf-cloud-prd"
+deny contains msg if {
+    not regex.match("^(tf-cloud-dev|tf-cloud-uat|tf-cloud-prd)$", workspace_name)
+    msg := sprintf("Workspace name '%v' is not allowed. Must be one of: tf-cloud-dev, tf-cloud-uat, tf-cloud-prd", [workspace_name])
 }

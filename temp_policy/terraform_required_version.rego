@@ -1,4 +1,4 @@
-package terraform.policy
+package terraform.policy.req_version
 
 required_version = input.terraform.required_version
 required_version = input.required_version
