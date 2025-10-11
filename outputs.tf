@@ -1,4 +1,10 @@
-output "project_id" {
-  description = "The GCP project ID"
-  value       = var.project_id
+output "kubeconfig_command" {
+  value = "gcloud container clusters get-credentials ${google_container_cluster.autopilot.name} --region ${var.region} --project ${var.project_id}"
+}
+output "cluster_endpoint" {
+  value = google_container_cluster.autopilot.endpoint
+}
+
+output "cluster_name" {
+  value = google_container_cluster.autopilot.name
 }
