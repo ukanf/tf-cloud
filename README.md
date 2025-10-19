@@ -1,10 +1,3 @@
-I need to 
+# IMPORTANT
 
-gcloud auth login
-$ gcloud config set project tf-vpcsc             
-gcloud auth application-default set-quota-project tf-vpcsc
-
-gcloud config set billing/quota_project tf-vpcsc
-
-Example of working PR for the dev env: 
-- https://github.com/ukanf/tf-cloud/pull/1
+"main" is just a "template" branch. Please, see the other branches for the actual content.
