@@ -19,7 +19,7 @@ variable "region" {
 variable "cluster_name" {
   description = "GKE cluster name"
   type        = string
-  default     = "atlantis-autopilot-cluster"
+  default     = "my_cluster_1"
 }
 
 variable "subnet_cidr" {

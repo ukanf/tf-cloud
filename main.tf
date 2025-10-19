@@ -75,10 +75,11 @@ resource "google_gke_hub_feature_membership" "configmanagement" {
   configmanagement {
     config_sync {
       source_format = "unstructured"
+      enabled = true
       git {
         sync_repo   = var.config_sync_repo_url
         sync_branch = var.config_sync_branch
-        policy_dir  = "clusters/${var.cluster_name}"
+        policy_dir  = "rendered/${var.cluster_name}"
         secret_type = "none"
       }
     }

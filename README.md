@@ -1,10 +1,13 @@
-I need to 
+# This Repo
 
-gcloud auth login
-$ gcloud config set project tf-vpcsc             
-gcloud auth application-default set-quota-project tf-vpcsc
+This repo contains code for a autopilot GKE cluster setup using Terraform.
 
-gcloud config set billing/quota_project tf-vpcsc
+We create the VPC -> Subnet
 
-Example of working PR for the dev env: 
-- https://github.com/ukanf/tf-cloud/pull/1
+# GitOps
+
+Best practices: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/concepts/gitops-best-practices
+
+ACM
+- hierarchical: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/concepts/hierarchical-repo
+- unstructured: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/unstructured-repo 
