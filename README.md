@@ -4,10 +4,13 @@ This repo contains code for a autopilot GKE cluster setup using Terraform.
 
 We create the VPC -> Subnet
 
-# GitOps
+## GitOps
 
-Best practices: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/concepts/gitops-best-practices
+Best practices: [GitOps best practices](https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/concepts/gitops-best-practices)
 
-ACM
-- hierarchical: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/concepts/hierarchical-repo
-- unstructured: https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/unstructured-repo 
+ACM:
+
+- hierarchical: [hierarchical repo](https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/concepts/hierarchical-repo)
+- unstructured: [unstructured repo](https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/unstructured-repo)
+
+Fleets: [Fleets talk](https://www.youtube.com/watch?v=IUQZbUgCiWs)
