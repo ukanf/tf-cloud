@@ -47,11 +47,15 @@ resource "google_compute_subnetwork" "subnet" {
 # GKE Autopilot Cluster
 # ----------------------------
 resource "google_container_cluster" "autopilot" {
-  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
+  depends_on = [
+    google_project_service.compute_api,
+    google_project_service.kubernetes_api,
+    google_project_service.gke_hub_api,
+    google_project_service.acm_api
+  ]
   name     = var.cluster_name
   location = var.cluster_region
   deletion_protection = false
-
   enable_autopilot = true
 
   release_channel {
@@ -64,8 +68,16 @@ resource "google_container_cluster" "autopilot" {
   ip_allocation_policy {}
 }
 
+# ----------------------------
+# Fleet Membership
+# ----------------------------
 resource "google_gke_hub_membership" "membership" {
-  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
+  depends_on = [
+    google_project_service.compute_api,
+    google_project_service.kubernetes_api,
+    google_project_service.gke_hub_api,
+    google_project_service.acm_api
+  ]
   membership_id = var.cluster_name
   endpoint {
     gke_cluster {
@@ -75,13 +87,23 @@ resource "google_gke_hub_membership" "membership" {
 }
 
 resource "google_gke_hub_feature" "configmanagement" {
-  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
+  depends_on = [
+    google_project_service.compute_api,
+    google_project_service.kubernetes_api,
+    google_project_service.gke_hub_api,
+    google_project_service.acm_api
+  ]
   name     = "configmanagement"
   location = "global"
 }
 
 resource "google_gke_hub_feature_membership" "configmanagement" {
-  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
+  depends_on = [
+    google_project_service.compute_api,
+    google_project_service.kubernetes_api,
+    google_project_service.gke_hub_api,
+    google_project_service.acm_api
+  ]
   feature    = google_gke_hub_feature.configmanagement.name
   membership = google_gke_hub_membership.membership.name
   location   = "global"
