@@ -10,7 +10,7 @@ variable "project_prefix" {
   default     = "atlantis"
 }
 
-variable "region" {
+variable "cluster_region" {
   description = "Region to deploy the cluster (e.g. us-central1)"
   default     = "us-central1"
   type        = string
@@ -19,7 +19,7 @@ variable "region" {
 variable "cluster_name" {
   description = "GKE cluster name"
   type        = string
-  default     = "my_cluster_1"
+  default     = "my-cluster-1"
 }
 
 variable "subnet_cidr" {

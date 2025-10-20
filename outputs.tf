@@ -1,5 +1,5 @@
 output "kubeconfig_command" {
-  value = "gcloud container clusters get-credentials ${google_container_cluster.autopilot.name} --region ${var.region} --project ${var.project_id}"
+  value = "gcloud container clusters get-credentials ${google_container_cluster.autopilot.name} --region ${var.cluster_region} --project ${var.project_id}"
 }
 output "cluster_endpoint" {
   value = google_container_cluster.autopilot.endpoint

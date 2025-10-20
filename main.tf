@@ -11,11 +11,21 @@ resource "google_project_service" "kubernetes_api" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "gke_hub_api" {
+  service = "gkehub.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "acm_api" {
+  service = "anthosconfigmanagement.googleapis.com"
+  disable_on_destroy = false
+}
+
 # ----------------------------
 # VPC Network
 # ----------------------------
 resource "google_compute_network" "vpc" {
-  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api]
+  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
   name                    = "${var.project_prefix}-vpc"
   auto_create_subnetworks = false
   description             = "VPC for GKE Autopilot and Atlantis"
@@ -28,7 +38,7 @@ resource "google_compute_network" "vpc" {
 resource "google_compute_subnetwork" "subnet" {
   name          = "${var.project_prefix}-subnet"
   ip_cidr_range = var.subnet_cidr
-  region        = var.region
+  region        = var.cluster_region
   network       = google_compute_network.vpc.id
   description   = "Subnetwork for GKE Autopilot cluster"
 }
@@ -37,8 +47,9 @@ resource "google_compute_subnetwork" "subnet" {
 # GKE Autopilot Cluster
 # ----------------------------
 resource "google_container_cluster" "autopilot" {
+  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
   name     = var.cluster_name
-  location = var.region
+  location = var.cluster_region
   deletion_protection = false
 
   enable_autopilot = true
@@ -54,23 +65,26 @@ resource "google_container_cluster" "autopilot" {
 }
 
 resource "google_gke_hub_membership" "membership" {
+  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
   membership_id = var.cluster_name
   endpoint {
     gke_cluster {
-      resource_link = "//container.googleapis.com/projects/${var.project_id}/locations/${var.region}/clusters/${google_container_cluster.autopilot.name}"
+      resource_link = "//container.googleapis.com/projects/${var.project_id}/locations/${var.cluster_region}/clusters/${google_container_cluster.autopilot.name}"
     }
   }
 }
 
 resource "google_gke_hub_feature" "configmanagement" {
+  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
   name     = "configmanagement"
-  location = var.region
+  location = "global"
 }
 
 resource "google_gke_hub_feature_membership" "configmanagement" {
+  depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
   feature    = google_gke_hub_feature.configmanagement.name
   membership = google_gke_hub_membership.membership.name
-  location   = var.region
+  location   = "global"
 
   configmanagement {
     config_sync {
