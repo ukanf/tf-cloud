@@ -14,3 +14,13 @@ ACM:
 - unstructured: [unstructured repo](https://cloud.google.com/kubernetes-engine/enterprise/config-sync/docs/how-to/unstructured-repo)
 
 Fleets: [Fleets talk](https://www.youtube.com/watch?v=IUQZbUgCiWs)
+
+## How to use DEV
+
+First:
+```
+cd deployments/dev
+terraform init
+```
+
+Double check the variables
