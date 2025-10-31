@@ -157,6 +157,11 @@ resource "google_iam_workload_identity_pool" "github_pool" {
   display_name             = "GitHub Actions Pool"
   description             = "Identity pool for GitHub Actions"
 }
+# if you are getting a 409 - check if the pool already exists or was delete: gcloud iam workload-identity-pools list --location="global" --show-deleted
+# if deleted:
+# 1. undelete it: gcloud iam workload-identity-pools undelete github-pool --location="global"
+# 2. import it: terraform import google_iam_workload_identity_pool.github_pool projects/122834034033/locations/global/workloadIdentityPools/github-pool
+# OR create a new one...
 
 # Create Workload Identity Provider
 resource "google_iam_workload_identity_pool_provider" "github_provider" {
@@ -178,6 +183,12 @@ resource "google_iam_workload_identity_pool_provider" "github_provider" {
 
   attribute_condition = "assertion.repository=='ukanf/acm-atlantis-poc'"
 }
+# Well, another 409??
+# Check if it exists and was deleted.. gcloud iam workload-identity-pools providers list   --workload-identity-pool="github-pool"   --location="global"   --show-deleted
+# undelete: gcloud iam workload-identity-pools providers undelete github-provider --workload-identity-pool="github-pool" --location="global"
+# import: terraform import google_iam_workload_identity_pool_provider.github_provider projects/122834034033/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+# OR create a new one
+
 
 # Allow authentications from the workload identity provider to impersonate the service account
 resource "google_service_account_iam_member" "workload_identity_user_pusher" {
@@ -228,28 +239,27 @@ resource "google_project_iam_member" "deployer_token_creator" {
   member  = "serviceAccount:${google_service_account.deployer.email}"
 }
 
-# DO I REALLY NEED THIS??
-# # ----------------------------
-# # Config Management Service Account
-# # ----------------------------
-# resource "google_service_account" "config_management" {
-#   account_id   = "${var.project_prefix}-config-mgmt"
-#   display_name = "Config Management System Service Account"
-# }
+# ----------------------------
+# Config Management Service Account
+# ----------------------------
+resource "google_service_account" "config_management" {
+  account_id   = "${var.project_prefix}-config-mgmt"
+  display_name = "Config Management System Service Account"
+}
 
-# # Allow Config Management to read from Artifact Registry
-# resource "google_project_iam_member" "config_management_artifact_reader" {
-#   project = var.project_id
-#   role    = "roles/artifactregistry.reader"
-#   member  = "serviceAccount:${google_service_account.config_management.email}"
-# }
+# Allow Config Management to read from Artifact Registry
+resource "google_project_iam_member" "config_management_artifact_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.config_management.email}"
+}
 
-# # Allow Config Management K8s SA to impersonate this GSA
-# resource "google_service_account_iam_member" "config_management_workload_identity" {
-#   service_account_id = google_service_account.config_management.name
-#   role               = "roles/iam.workloadIdentityUser"
-#   member             = "serviceAccount:${var.project_id}.svc.id.goog[config-management-system/oci-sync]"
-# }
+# Allow Config Management K8s SA to impersonate this GSA
+resource "google_service_account_iam_member" "config_management_workload_identity" {
+  service_account_id = google_service_account.config_management.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.project_id}.svc.id.goog[config-management-system/root-reconciler]"
+}
 
 # ----------------------------
 # Artifact Registry Docker Repository
