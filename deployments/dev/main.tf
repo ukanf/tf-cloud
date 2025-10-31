@@ -228,27 +228,28 @@ resource "google_project_iam_member" "deployer_token_creator" {
   member  = "serviceAccount:${google_service_account.deployer.email}"
 }
 
-# ----------------------------
-# Config Management Service Account
-# ----------------------------
-resource "google_service_account" "config_management" {
-  account_id   = "${var.project_prefix}-config-mgmt"
-  display_name = "Config Management System Service Account"
-}
+# DO I REALLY NEED THIS??
+# # ----------------------------
+# # Config Management Service Account
+# # ----------------------------
+# resource "google_service_account" "config_management" {
+#   account_id   = "${var.project_prefix}-config-mgmt"
+#   display_name = "Config Management System Service Account"
+# }
 
-# Allow Config Management to read from Artifact Registry
-resource "google_project_iam_member" "config_management_artifact_reader" {
-  project = var.project_id
-  role    = "roles/artifactregistry.reader"
-  member  = "serviceAccount:${google_service_account.config_management.email}"
-}
+# # Allow Config Management to read from Artifact Registry
+# resource "google_project_iam_member" "config_management_artifact_reader" {
+#   project = var.project_id
+#   role    = "roles/artifactregistry.reader"
+#   member  = "serviceAccount:${google_service_account.config_management.email}"
+# }
 
-# Allow Config Management K8s SA to impersonate this GSA
-resource "google_service_account_iam_member" "config_management_workload_identity" {
-  service_account_id = google_service_account.config_management.name
-  role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project_id}.svc.id.goog[config-management-system/oci-sync]"
-}
+# # Allow Config Management K8s SA to impersonate this GSA
+# resource "google_service_account_iam_member" "config_management_workload_identity" {
+#   service_account_id = google_service_account.config_management.name
+#   role               = "roles/iam.workloadIdentityUser"
+#   member             = "serviceAccount:${var.project_id}.svc.id.goog[config-management-system/oci-sync]"
+# }
 
 # ----------------------------
 # Artifact Registry Docker Repository
