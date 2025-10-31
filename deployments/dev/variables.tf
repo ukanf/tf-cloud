@@ -16,6 +16,12 @@ variable "cluster_region" {
   type        = string
 }
 
+variable "cluster_zone" {
+  description = "Zone to deploy the cluster"
+  default     = "us-central1-c"
+  type        = string
+}
+
 variable "cluster_name" {
   description = "GKE cluster name"
   type        = string

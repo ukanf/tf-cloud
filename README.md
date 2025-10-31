@@ -24,3 +24,8 @@ terraform init
 ```
 
 Double check the variables
+
+### TODO now
+
+create key for SA
+link key to repo so the workflow that deploys works
