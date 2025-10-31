@@ -79,7 +79,7 @@ resource "google_project_service" "artifact_registry_api" {
 
 module "gke" {
   source             = "terraform-google-modules/kubernetes-engine/google//modules/beta-private-cluster"
-  version            = "~> 41.0"
+  version            = "41.0.1"
   project_id         = var.project_id
   name               = var.cluster_name
   region             = var.cluster_region
@@ -141,10 +141,56 @@ resource "google_gke_hub_feature_membership" "configmanagement" {
       enabled       = true
       oci {
         sync_repo = "us-central1-docker.pkg.dev/tf-atlantis-poc/atlantis-docker/my-cluster-1@sha256:32f11dc46fea2291aeff56ae7dfd321977c9382ec6e4dff91b3403cf9b6cddd0"
-        secret_type = "none"
+        secret_type = "gcpserviceaccount"
+        gcp_service_account_email = google_service_account.config_management.email
       }
     }
   }
+}
+
+# ----------------------------
+# Workload Identity Pool
+# ----------------------------
+# Create Workload Identity Pool
+resource "google_iam_workload_identity_pool" "github_pool" {
+  workload_identity_pool_id = "github-pool"
+  display_name             = "GitHub Actions Pool"
+  description             = "Identity pool for GitHub Actions"
+}
+
+# Create Workload Identity Provider
+resource "google_iam_workload_identity_pool_provider" "github_provider" {
+  workload_identity_pool_id          = google_iam_workload_identity_pool.github_pool.workload_identity_pool_id
+  workload_identity_pool_provider_id = "github-provider"
+  display_name                       = "GitHub Actions Provider"
+  
+  attribute_mapping = {
+    "google.subject"           = "assertion.sub"
+    "attribute.actor"          = "assertion.actor"
+    "attribute.repository"     = "assertion.repository"
+    "attribute.workflow"       = "assertion.workflow"
+    "attribute.workflow_ref"   = "assertion.ref"
+  }
+  
+  oidc {
+    issuer_uri = "https://token.actions.githubusercontent.com"
+  }
+
+  attribute_condition = "assertion.repository=='ukanf/acm-atlantis-poc'"
+}
+
+# Allow authentications from the workload identity provider to impersonate the service account
+resource "google_service_account_iam_member" "workload_identity_user_pusher" {
+  service_account_id = google_service_account.artifact_registry_pusher.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_pool.name}/attribute.repository/ukanf/acm-atlantis-poc"
+}
+
+# Allow authentications from the workload identity provider to impersonate the service account
+resource "google_service_account_iam_member" "workload_identity_user_deployer" {
+  service_account_id = google_service_account.deployer.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_pool.name}/attribute.repository/ukanf/acm-atlantis-poc"
 }
 
 # ----------------------------
@@ -169,10 +215,39 @@ resource "google_service_account" "deployer" {
   display_name = "Deployer"
 }
 
-resource "google_project_iam_member" "deployer_deploy" {
+resource "google_project_iam_member" "deployer_deploy_kubernetes" {
   project = var.project_id
   role    = "roles/container.developer"
   member  = "serviceAccount:${google_service_account.deployer.email}"
+}
+
+# Allow the deployer to create tokens
+resource "google_project_iam_member" "deployer_token_creator" {
+  project = var.project_id
+  role    = "roles/iam.workloadIdentityUser"
+  member  = "serviceAccount:${google_service_account.deployer.email}"
+}
+
+# ----------------------------
+# Config Management Service Account
+# ----------------------------
+resource "google_service_account" "config_management" {
+  account_id   = "${var.project_prefix}-config-mgmt"
+  display_name = "Config Management System Service Account"
+}
+
+# Allow Config Management to read from Artifact Registry
+resource "google_project_iam_member" "config_management_artifact_reader" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.config_management.email}"
+}
+
+# Allow Config Management K8s SA to impersonate this GSA
+resource "google_service_account_iam_member" "config_management_workload_identity" {
+  service_account_id = google_service_account.config_management.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.project_id}.svc.id.goog[config-management-system/oci-sync]"
 }
 
 # ----------------------------
