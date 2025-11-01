@@ -3,11 +3,6 @@ variable "billing_account_id" {
   type        = string
 }
 
-variable "project_name" {
-  description = "Name of the project"
-  type        = string
-}
-
 variable "project_prefix" {
   description = "Prefix for naming resources"
   type        = string

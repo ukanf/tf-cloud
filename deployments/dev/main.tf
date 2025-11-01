@@ -1,3 +1,11 @@
+resource "random_id" "project_suffix" {
+  byte_length = 4
+}
+
+locals {
+  full_project_name = "${var.project_prefix}-${random_id.project_suffix.hex}"
+}
+
 # ----------------------------
 # Enable required APIs
 # ----------------------------
@@ -6,7 +14,7 @@ module "project-factory" {
   source          = "terraform-google-modules/project-factory/google"
   version         = "18.1.0"
   billing_account = var.billing_account_id
-  name            = var.project_name
+  name            = local.full_project_name
   activate_apis = [
     "compute.googleapis.com",
     "container.googleapis.com",
@@ -33,8 +41,10 @@ module "gke" {
   ip_range_pods         = ""
   ip_range_services     = ""
   deletion_protection   = false
-  grant_registry_access = true
-  # registry_project_ids = ["tf-atlantis-poc"]
+  
+  # Disable automatic registry access and handle it separately because the module itself cant handle the dependecy :/
+  grant_registry_access = false
+  create_service_account = true
 }
 
 
@@ -190,9 +200,20 @@ resource "google_project_iam_member" "config_management_artifact_reader" {
 
 # Allow Config Management K8s SA to impersonate this GSA
 resource "google_service_account_iam_member" "config_management_workload_identity" {
+  depends_on = [ module.gke ]
   service_account_id = google_service_account.config_management.name
   role               = "roles/iam.workloadIdentityUser"
   member             = "serviceAccount:${module.project-factory.project_id}.svc.id.goog[config-management-system/root-reconciler]"
+}
+
+# ----------------------------
+# GKE Service Account Registry Access
+# ----------------------------
+resource "google_project_iam_member" "gke_registry_access" {
+  depends_on = [module.gke, module.project-factory]
+  project    = module.project-factory.project_id
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${module.gke.service_account}"
 }
 
 # ----------------------------
