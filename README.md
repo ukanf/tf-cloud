@@ -29,3 +29,12 @@ Double check the variables
 
 create key for SA
 link key to repo so the workflow that deploys works
+
+# Var file
+
+create a `<name>.tfvars` file with:
+
+```
+billing_account_id = "....."
+project_name       = "......"
+```

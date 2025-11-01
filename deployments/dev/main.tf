@@ -1,97 +1,40 @@
 # ----------------------------
 # Enable required APIs
 # ----------------------------
-resource "google_project_service" "compute_api" {
-  service            = "compute.googleapis.com"
-  disable_on_destroy = false
+module "project-factory" {
+  # doc: https://registry.terraform.io/modules/terraform-google-modules/project-factory/google/latest?tab=inputs
+  source          = "terraform-google-modules/project-factory/google"
+  version         = "18.1.0"
+  billing_account = var.billing_account_id
+  name            = var.project_name
+  activate_apis = [
+    "compute.googleapis.com",
+    "container.googleapis.com",
+    "gkehub.googleapis.com",
+    "anthosconfigmanagement.googleapis.com",
+    "artifactregistry.googleapis.com"
+  ]
+  auto_create_network = true
+  deletion_policy     = "DELETE"
 }
-
-resource "google_project_service" "kubernetes_api" {
-  service            = "container.googleapis.com"
-  disable_on_destroy = false
-}
-
-resource "google_project_service" "gke_hub_api" {
-  service            = "gkehub.googleapis.com"
-  disable_on_destroy = false
-}
-
-resource "google_project_service" "acm_api" {
-  service            = "anthosconfigmanagement.googleapis.com"
-  disable_on_destroy = false
-}
-
-resource "google_project_service" "artifact_registry_api" {
-  service            = "artifactregistry.googleapis.com"
-  disable_on_destroy = false
-}
-
-# # ----------------------------
-# # VPC Network
-# # ----------------------------
-# resource "google_compute_network" "vpc" {
-#   depends_on = [google_project_service.compute_api, google_project_service.kubernetes_api, google_project_service.gke_hub_api, google_project_service.acm_api]
-#   name                    = "${var.project_prefix}-vpc"
-#   auto_create_subnetworks = false
-#   description             = "VPC for GKE Autopilot and Atlantis"
-# }
-
-
-# # ----------------------------
-# # Subnetwork
-# # ----------------------------
-# resource "google_compute_subnetwork" "subnet" {
-#   name          = "${var.project_prefix}-subnet"
-#   ip_cidr_range = var.subnet_cidr
-#   region        = var.cluster_region
-#   network       = google_compute_network.vpc.id
-#   description   = "Subnetwork for GKE Autopilot cluster"
-# }
-
-# # ----------------------------
-# # GKE Autopilot Cluster
-# # ----------------------------
-# resource "google_container_cluster" "autopilot" {
-#   depends_on = [
-#     google_project_service.compute_api,
-#     google_project_service.kubernetes_api,
-#     google_project_service.gke_hub_api,
-#     google_project_service.acm_api
-#   ]
-#   name     = var.cluster_name
-#   location = var.cluster_region
-#   deletion_protection = false
-#   enable_autopilot = true
-
-#   release_channel {
-#     channel = "REGULAR"
-#   }
-
-#   network    = google_compute_network.vpc.self_link
-#   subnetwork = google_compute_subnetwork.subnet.self_link
-
-#   ip_allocation_policy {}
-# }
-
-# # ----------------------------
-# # GKE Cluster
-# # ----------------------------
 
 module "gke" {
-  source             = "terraform-google-modules/kubernetes-engine/google//modules/beta-private-cluster"
-  version            = "41.0.1"
-  project_id         = var.project_id
-  name               = var.cluster_name
-  region             = var.cluster_region
-  zones              = [var.cluster_zone]
-  initial_node_count = 1
-  network            = "default"
-  subnetwork         = "default"
-  ip_range_pods      = ""
-  ip_range_services  = ""
-  deletion_protection = false
+  # doc: 
+  depends_on            = [module.project-factory]
+  source                = "terraform-google-modules/kubernetes-engine/google//modules/beta-private-cluster"
+  version               = "41.0.1"
+  project_id            = module.project-factory.project_id
+  name                  = var.cluster_name
+  region                = var.cluster_region
+  zones                 = [var.cluster_zone]
+  initial_node_count    = 1
+  network               = "default"
+  subnetwork            = "default"
+  ip_range_pods         = ""
+  ip_range_services     = ""
+  deletion_protection   = false
   grant_registry_access = true
-  registry_project_ids = ["tf-atlantis-poc"]
+  # registry_project_ids = ["tf-atlantis-poc"]
 }
 
 
@@ -99,38 +42,24 @@ module "gke" {
 # # Fleet Membership
 # # ----------------------------
 resource "google_gke_hub_membership" "membership" {
-  depends_on = [
-    google_project_service.compute_api,
-    google_project_service.kubernetes_api,
-    google_project_service.gke_hub_api,
-    google_project_service.acm_api
-  ]
+  project       = module.project-factory.project_id
   membership_id = var.cluster_name
+
   endpoint {
     gke_cluster {
-      resource_link = "//container.googleapis.com/projects/${var.project_id}/locations/${var.cluster_region}/clusters/${module.gke.name}"
+      resource_link = "//container.googleapis.com/projects/${module.project-factory.project_id}/locations/${var.cluster_region}/clusters/${module.gke.name}"
     }
   }
 }
 
 resource "google_gke_hub_feature" "configmanagement" {
-  depends_on = [
-    google_project_service.compute_api,
-    google_project_service.kubernetes_api,
-    google_project_service.gke_hub_api,
-    google_project_service.acm_api
-  ]
+  project  = module.project-factory.project_id
   name     = "configmanagement"
   location = "global"
 }
 
 resource "google_gke_hub_feature_membership" "configmanagement" {
-  depends_on = [
-    google_project_service.compute_api,
-    google_project_service.kubernetes_api,
-    google_project_service.gke_hub_api,
-    google_project_service.acm_api
-  ]
+  project    = module.project-factory.project_id
   feature    = google_gke_hub_feature.configmanagement.name
   membership = google_gke_hub_membership.membership.name
   location   = "global"
@@ -140,8 +69,8 @@ resource "google_gke_hub_feature_membership" "configmanagement" {
       source_format = "unstructured"
       enabled       = true
       oci {
-        sync_repo = "us-central1-docker.pkg.dev/tf-atlantis-poc/atlantis-docker/my-cluster-1@sha256:32f11dc46fea2291aeff56ae7dfd321977c9382ec6e4dff91b3403cf9b6cddd0"
-        secret_type = "gcpserviceaccount"
+        sync_repo                 = "us-central1-docker.pkg.dev/tf-atlantis-poc/atlantis-docker/my-cluster-1@sha256:01fb49330fcdd0473e282190d8e46950722e41002748c43a08fec890b1de668d"
+        secret_type               = "gcpserviceaccount"
         gcp_service_account_email = google_service_account.config_management.email
       }
     }
@@ -153,9 +82,10 @@ resource "google_gke_hub_feature_membership" "configmanagement" {
 # ----------------------------
 # Create Workload Identity Pool
 resource "google_iam_workload_identity_pool" "github_pool" {
+  project                   = module.project-factory.project_id
   workload_identity_pool_id = "github-pool"
-  display_name             = "GitHub Actions Pool"
-  description             = "Identity pool for GitHub Actions"
+  display_name              = "GitHub Actions Pool"
+  description               = "Identity pool for GitHub Actions"
 }
 # if you are getting a 409 - check if the pool already exists or was delete: gcloud iam workload-identity-pools list --location="global" --show-deleted
 # if deleted:
@@ -165,18 +95,19 @@ resource "google_iam_workload_identity_pool" "github_pool" {
 
 # Create Workload Identity Provider
 resource "google_iam_workload_identity_pool_provider" "github_provider" {
+  project                            = module.project-factory.project_id
   workload_identity_pool_id          = google_iam_workload_identity_pool.github_pool.workload_identity_pool_id
   workload_identity_pool_provider_id = "github-provider"
   display_name                       = "GitHub Actions Provider"
-  
+
   attribute_mapping = {
-    "google.subject"           = "assertion.sub"
-    "attribute.actor"          = "assertion.actor"
-    "attribute.repository"     = "assertion.repository"
-    "attribute.workflow"       = "assertion.workflow"
-    "attribute.workflow_ref"   = "assertion.ref"
+    "google.subject"         = "assertion.sub"
+    "attribute.actor"        = "assertion.actor"
+    "attribute.repository"   = "assertion.repository"
+    "attribute.workflow"     = "assertion.workflow"
+    "attribute.workflow_ref" = "assertion.ref"
   }
-  
+
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
   }
@@ -208,12 +139,13 @@ resource "google_service_account_iam_member" "workload_identity_user_deployer" {
 # Artifact Registry Service Account
 # ----------------------------
 resource "google_service_account" "artifact_registry_pusher" {
+  project      = module.project-factory.project_id
   account_id   = "${var.project_prefix}-artifact-pusher"
   display_name = "Artifact Registry Image Pusher"
 }
 
 resource "google_project_iam_member" "artifact_registry_writer" {
-  project = var.project_id
+  project = module.project-factory.project_id
   role    = "roles/artifactregistry.writer"
   member  = "serviceAccount:${google_service_account.artifact_registry_pusher.email}"
 }
@@ -222,19 +154,20 @@ resource "google_project_iam_member" "artifact_registry_writer" {
 # Deployer Service Account
 # ----------------------------
 resource "google_service_account" "deployer" {
+  project      = module.project-factory.project_id
   account_id   = "${var.project_prefix}-deployer"
   display_name = "Deployer"
 }
 
 resource "google_project_iam_member" "deployer_deploy_kubernetes" {
-  project = var.project_id
+  project = module.project-factory.project_id
   role    = "roles/container.developer"
   member  = "serviceAccount:${google_service_account.deployer.email}"
 }
 
 # Allow the deployer to create tokens
 resource "google_project_iam_member" "deployer_token_creator" {
-  project = var.project_id
+  project = module.project-factory.project_id
   role    = "roles/iam.workloadIdentityUser"
   member  = "serviceAccount:${google_service_account.deployer.email}"
 }
@@ -243,13 +176,14 @@ resource "google_project_iam_member" "deployer_token_creator" {
 # Config Management Service Account
 # ----------------------------
 resource "google_service_account" "config_management" {
+  project      = module.project-factory.project_id
   account_id   = "${var.project_prefix}-config-mgmt"
   display_name = "Config Management System Service Account"
 }
 
 # Allow Config Management to read from Artifact Registry
 resource "google_project_iam_member" "config_management_artifact_reader" {
-  project = var.project_id
+  project = module.project-factory.project_id
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${google_service_account.config_management.email}"
 }
@@ -258,14 +192,14 @@ resource "google_project_iam_member" "config_management_artifact_reader" {
 resource "google_service_account_iam_member" "config_management_workload_identity" {
   service_account_id = google_service_account.config_management.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project_id}.svc.id.goog[config-management-system/root-reconciler]"
+  member             = "serviceAccount:${module.project-factory.project_id}.svc.id.goog[config-management-system/root-reconciler]"
 }
 
 # ----------------------------
 # Artifact Registry Docker Repository
 # ----------------------------
 resource "google_artifact_registry_repository" "docker_repo" {
-  provider      = google
+  project       = module.project-factory.project_id
   location      = var.cluster_region
   repository_id = "${var.project_prefix}-docker"
   description   = "Docker repository for ${var.project_prefix}"

@@ -11,15 +11,15 @@
 
 
 output "workload_identity_provider" {
-  value = "${google_iam_workload_identity_pool_provider.github_provider.name}"
+  value       = google_iam_workload_identity_pool_provider.github_provider.name
   description = "Workload Identity Provider ID for GitHub Actions"
 }
 
 output "service_account_email" {
-  value = google_service_account.artifact_registry_pusher.email
+  value       = google_service_account.artifact_registry_pusher.email
   description = "Service Account email for GitHub Actions"
 }
 
 output "workload_identity_provider_name" {
-  value = "projects/${var.project_id}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github_pool.workload_identity_pool_id}/providers/${google_iam_workload_identity_pool_provider.github_provider.workload_identity_pool_provider_id}"
+  value = "projects/${module.project-factory.project_id}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github_pool.workload_identity_pool_id}/providers/${google_iam_workload_identity_pool_provider.github_provider.workload_identity_pool_provider_id}"
 }

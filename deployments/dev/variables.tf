@@ -1,6 +1,10 @@
-variable "project_id" {
-  description = "GCP project ID"
-  default     = "tf-atlantis-poc"
+variable "billing_account_id" {
+  description = "Billing account ID"
+  type        = string
+}
+
+variable "project_name" {
+  description = "Name of the project"
   type        = string
 }
 
