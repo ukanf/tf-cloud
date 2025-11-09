@@ -20,6 +20,11 @@ output "artifact_pusher_service_account_email" {
   description = "Service Account email for GitHub Actions"
 }
 
+output "artifact_registry_repo" {
+  value       = "${google_artifact_registry_repository.docker_repo.location}-docker.pkg.dev/${module.project-factory.project_id}/${google_artifact_registry_repository.docker_repo.name}"
+  description = "Artifact Registry Repository URL"
+}
+
 # output "workload_identity_provider_name" {
 #   value = "projects/${module.project-factory.project_id}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github_pool.workload_identity_pool_id}/providers/${google_iam_workload_identity_pool_provider.github_provider.workload_identity_pool_provider_id}"
 # }
