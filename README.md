@@ -38,6 +38,11 @@ billing_account_id = "....."
 
 or just provide it when running `plan/apply`
 
-So:
+So (choose one...):
 1. `tf apply -var-file=<name>.tfvars`
 2. `tf apply -var "billing_account_id=<my_billing_account_id>"`
+
+
+
+# TODO
+1. Add a dependency so WIF gets created before the clusters... so

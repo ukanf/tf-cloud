@@ -79,7 +79,7 @@ resource "google_gke_hub_feature_membership" "configmanagement" {
       source_format = "unstructured"
       enabled       = true
       oci {
-        sync_repo                 = "us-central1-docker.pkg.dev/tf-atlantis-poc/atlantis-docker/my-cluster-1@sha256:01fb49330fcdd0473e282190d8e46950722e41002748c43a08fec890b1de668d"
+        sync_repo                 = "us-central1-docker.pkg.dev/atlantis-f7bdb7e5/atlantis-docker/my-cluster-1@sha256:b4901b682a5982f006d6727ef5710cb2aa0bf55dd1b42524e6df7d7c11c12578"
         secret_type               = "gcpserviceaccount"
         gcp_service_account_email = google_service_account.config_management.email
       }
